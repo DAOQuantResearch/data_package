@@ -1,6 +1,7 @@
 import requests
 import time
 import json
+import concurrent.futures
 
 import aiohttp
 import asyncio
@@ -70,8 +71,6 @@ class httpapi:
         return self.query(url_path)
    
     
-
-        
     async def get_historical_data(self,session, params,stream):
         url = "https://api.binance.com/api/v3/"+stream
       
@@ -90,9 +89,20 @@ class httpapi:
                 end_timestamp=params["endTime"]
                 start_timestamp=params["startTime"]
                 while start_timestamp < end_timestamp:
-              
-                    end_time = start_timestamp + (1000 * 1 * 1000)  # 1000 minutes
-                  
+                    if params['interval']=='1s':
+                        end_time = start_timestamp + (1000 * 1 * 1000)  
+                    elif params['interval']=='1m':
+                        end_time = start_timestamp + (1000 * 60 * 1000)
+                    elif params['interval']=='1h':
+                        end_time = start_timestamp + (1000 * 60 * 60 * 1000)
+                    elif params['interval']=='1d':
+                        end_time = start_timestamp + (1000 * 60 * 60 * 24 * 1000)
+                    elif params['interval']=='1w':
+                        end_time = start_timestamp + (1000 * 60 * 60 * 24 * 7 * 1000)
+                    elif params['interval']=='1M':
+                        end_time = start_timestamp + (1000 * 60 * 60 * 24 * 30 * 1000)
+                    
+
                     params1=params
                     params1['startTime']=start_timestamp
                     params1['endTime']=end_time
@@ -112,13 +122,13 @@ class httpapi:
                 end_trade=requests.get("https://api.binance.com/api/v3/aggTrades",params)
                 end_trade=end_trade.json()
                 end_trade_id=end_trade[0]["a"]
-                print(first_trade)
+                #print(first_trade)
                 first_trade=first_trade.json()
                 first_trade_id=first_trade[0]["a"]
                 from_id=first_trade_id
                 
                 while ((from_id<end_trade_id)):
-                    print("yes")
+                    #print("yes")
                     params1={
                         "symbol": params["symbol"],
                         "limit": 1000,
@@ -136,7 +146,7 @@ class httpapi:
         data = await self.get_price_data(params,stream)
         print(data)
         # Process the kline_data as per your requirements
-        print("finish")
+        #print("finish")
     
     def kline_V2(self,crypto,start,end,interval):
         params = {
@@ -149,9 +159,9 @@ class httpapi:
         asyncio.run(self.data_pre(params,"klines"))
     
      
-    def aggtrade(self,crypto,fromtime,endtime):
+    def aggtrade_V2(self,crypto,fromtime,endtime):
           
-            url_path = "/api/v3/aggTrades"
+            # url_path = "/api/v3/aggTrades"
             payload = {
                 "symbol": crypto,
                 "limit": 1000,
@@ -171,6 +181,103 @@ class httpapi:
             "symbol": crypto
         }
         return self.query(url_path,payload)
+    
+
+    def get_kline_data_v1(self,params,stream):
+        url = "https://api.binance.com/api/v3/"+stream
+ 
+        response = requests.get(url, params=params)
+        data = response.json()
+        time.sleep(0.1)
+        return data
+
+    def get_price_data_v1(self,params,stream):
+        kline_data = []
+        tasks = []
+        end_timestamp=params["endTime"]
+        start_timestamp=params["startTime"]
+
+        if stream=="klines":
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1000) as executor:
+                while start_timestamp < end_timestamp:
+                    if params['interval']=='1s':
+                        end_time = start_timestamp + (1000 * 1 * 1000)  
+                    elif params['interval']=='1m':
+                        end_time = start_timestamp + (1000 * 60 * 1000)
+                    elif params['interval']=='1h':
+                        end_time = start_timestamp + (1000 * 60 * 60 * 1000)
+                    elif params['interval']=='1d':
+                        end_time = start_timestamp + (1000 * 60 * 60 * 24 * 1000)
+                    elif params['interval']=='1w':
+                        end_time = start_timestamp + (1000 * 60 * 60 * 24 * 7 * 1000)
+                    elif params['interval']=='1M':
+                        end_time = start_timestamp + (1000 * 60 * 60 * 24 * 30 * 1000)
+                    else :
+                        break
+                    params['startTime']=start_timestamp
+                    params['endTime']=end_time
+                    tasks.append(executor.submit(self.get_kline_data_v1, params,stream))
+                    start_timestamp = end_time
+
+                for task in concurrent.futures.as_completed(tasks):
+                    kline_data.extend(task.result())
+
+            return kline_data
+        
+        elif stream=="aggTrades":
+            params['limit']=1
+            first_trade=requests.get("https://api.binance.com/api/v3/aggTrades",params)
+            first_trade=first_trade.json()
+            print(first_trade)
+
+            params['startTime']=params['endTime']
+            params['endTime']=None
+            end_trade=requests.get("https://api.binance.com/api/v3/aggTrades",params)
+            end_trade=end_trade.json()
+            end_trade_id=end_trade[0]["a"]
+            first_trade_id=first_trade[0]["a"]
+            from_id=first_trade_id
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1000) as executor:
+
+                while ((from_id<end_trade_id)):
+                    print("yes")
+                    params1={
+                            "symbol": params["symbol"],
+                            "limit": 1000,
+                            "fromId":from_id,
+                        }
+                    tasks.append(executor.submit(self.get_kline_data_v1, params1,stream))
+                    from_id+=1000
+                for task in concurrent.futures.as_completed(tasks):
+                        kline_data.extend(task.result())
+            return kline_data
+
+                
+
+    def kline_V1(self,crypto,start,end,interval):
+        params={
+            "symbol": crypto,
+            "interval": interval,
+            "startTime": start,
+            "endTime": end,           
+        }
+
+        kline_data = self.get_price_data_v1(params,"klines")
+        print(kline_data)
+        # Process the kline_data as per your requirements
+        print("finish")
+
+    def aggTrade_V1 (self,crypto,start,end):
+        params={
+            "symbol": crypto,
+            "startTime": start,
+            "endTime": end,
+        }
+        aggtrade_data=self.get_price_data_v1(params,"aggTrades")
+        print(aggtrade_data)
+        print("finish")
+
+
 
 
 
@@ -182,6 +289,6 @@ class httpapi:
 ## main 
 if __name__ == "__main__":
     client=httpapi()
-    #print(client.exchangeinfo())
-    client.aggtrade("BTCUSDT",1617235200000,1617235206000)
-    #print(client.aggtrade(crypto="BTCUSDT",limit=1000, fromtime=1688473945344))
+    client.aggtrade_V2("BTCUSDT",1688601600000,1688649391000) # v2 is use the async method
+
+    client.aggTrade_V1("BTCUSDT",1688601600000,1688649391000) # v1 is use the threading method -> faster than v2
