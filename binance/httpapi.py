@@ -2,6 +2,9 @@ import requests
 import time
 import json
 
+import aiohttp
+import asyncio
+
 class httpapi:
 
     def __init__(self, api_key=None, api_key_secret=None):
@@ -40,10 +43,13 @@ class httpapi:
                 if len(data) == 0:
                     break  # No more data available
                 all_data.extend(data)
+                print(len(data))
                 print(data)
+
+               
                 if type=="klines":
                     start_time = int(data[-1][0]) + 1
-                if type == "aggTrades":
+                elif type == "aggTrades":
                     start_time = int(data[-1]["T"]) + 1
                 else:
                     print("no type")
@@ -62,92 +68,102 @@ class httpapi:
     def exchangeinfo(self):
         url_path = "/api/v3/exchangeInfo"
         return self.query(url_path)
+   
     
-    
-    # def orderbook(self,crypto:str,limit=1000,fromid=None):
-    #     url_path = "/api/v3/depth"
-    #     payload = {
-    #         "symbol": crypto,
-    #         "limit": limit,
-    #     }
-    #     if fromid:
-    #         payload["fromId"]=fromid
+
         
-    #     return self.historical_data(url_path,payload)
+    async def get_historical_data(self,session, params,stream):
+        url = "https://api.binance.com/api/v3/"+stream
+      
+        async with session.get(url, params=params) as response:
+            data = await response.json()
+            return data
     
-    
-    # not working
-    # def recent_trade (self,crypto,limit,fromtime):
-    #         print(fromtime)
-    #         url_path = "/api/v3/trades"
-    #         payload = {
-    #                 "symbol": crypto,
-    #                 "limit": limit,
-                
-    #             }
+    async def get_price_data(self, params,stream):
+        data = []
+        tasks = []
+        concurrency = 100  # Number of concurrent requests
+
+        async with aiohttp.ClientSession() as sessions:
+            sem = asyncio.Semaphore(concurrency)
+            if stream=="klines":
+                end_timestamp=params["endTime"]
+                start_timestamp=params["startTime"]
+                while start_timestamp < end_timestamp:
+              
+                    end_time = start_timestamp + (1000 * 1 * 1000)  # 1000 minutes
+                  
+                    params1=params
+                    params1['startTime']=start_timestamp
+                    params1['endTime']=end_time
+                    async with sem:
+                        tasks.append(asyncio.create_task(self.get_historical_data(sessions, params1,stream)))
+                    start_timestamp = end_time
+
+                data = await asyncio.gather(*tasks)
+                return data
             
-    #         data=self.query(url_path,payload)
-    #         all_data=[]
-    #         url_historical_path="/api/v3/historicalTrades"
-    #         all_data.extend(data)
-    #         print(type(fromtime))
-    #         print(data[0]['time'])
-    #         print(type(data[0]['time']))
-    #         if data[0]['time']>fromtime:
-    #             print("yes")
-    #         else:
-    #             print("no")
-    #         while True:
-    #             from_id = data[0]["id"] - limit
-    #             payload["fromId"]=from_id
-    #             print(payload)
-    #             data1=self.query(url_historical_path,payload)
-    #             data1 = data1.json()
-    #             print(data1)
-    #             all_data.extend(data)
-    #             print(data1[0]['time'])
-    #             if data1[0]['time']>fromtime:
-    #                 break
+            elif stream=="aggTrades":
+                end_timestamp=params["endTime"]
+                params['limit']=1
+                first_trade=requests.get("https://api.binance.com/api/v3/aggTrades",params)
+                params['startTime']=params['endTime']
+                params['endTime']=None
+                end_trade=requests.get("https://api.binance.com/api/v3/aggTrades",params)
+                end_trade=end_trade.json()
+                end_trade_id=end_trade[0]["a"]
+                print(first_trade)
+                first_trade=first_trade.json()
+                first_trade_id=first_trade[0]["a"]
+                from_id=first_trade_id
                 
-    #         return all_data
+                while ((from_id<end_trade_id)):
+                    print("yes")
+                    params1={
+                        "symbol": params["symbol"],
+                        "limit": 1000,
+                        "fromId":from_id,
+                    }
+                    async with sem:
+                        tasks.append(asyncio.create_task(self.get_historical_data(sessions, params1,stream)))
+                    from_id+=1000
+                data = await asyncio.gather(*tasks)
+                return data
 
-
+        
+    async def data_pre(self,params,stream):
+         
+        data = await self.get_price_data(params,stream)
+        print(data)
+        # Process the kline_data as per your requirements
+        print("finish")
     
-    def aggtrade(self,crypto:str,fromtime=None,endtime=None,limit=1000):
+    def kline_V2(self,crypto,start,end,interval):
+        params = {
+            "symbol": crypto,
+            "interval": interval,
+            "startTime": start,
+            "endTime": end,
+            "limit": 1000
+        }
+        asyncio.run(self.data_pre(params,"klines"))
+    
+     
+    def aggtrade(self,crypto,fromtime,endtime):
           
             url_path = "/api/v3/aggTrades"
             payload = {
                 "symbol": crypto,
-                "limit": limit
-            }
-           
-            if fromtime:
-                payload["startTime"]=fromtime
-            if endtime==None and fromtime!=None:
-                payload["endTime"]=int(time.time()*1000)
-            if endtime:
-                payload["endTime"]=endtime
+                "limit": 1000,
+                "startTime": fromtime,
+                "endTime": endtime
             
-            return self.historical_data(url_path,payload,"aggTrades")
-    
+            }
+            asyncio.run(self.data_pre(payload,"aggTrades"))
 
-    def Kline(self,crypto:str,interval:str,fromtime=None,endtime=None,limit=1000):
           
-            url_path = "/api/v3/klines"
-            payload = {
-                "symbol": crypto,
-                "interval": interval,
-                "limit": limit
-            }
-            if fromtime:
-                payload["startTime"]=fromtime
-            if endtime==None and fromtime!=None:
-                payload["endTime"]=int(time.time()*1000)
-            if endtime:
-                payload["endTime"]=endtime
             
-            return self.historical_data(url_path,payload,"klines")
-    
+        
 
     def current_price(self,crypto:str):
         url_path = "/api/v3/avgPrice"
@@ -167,5 +183,5 @@ class httpapi:
 if __name__ == "__main__":
     client=httpapi()
     #print(client.exchangeinfo())
-    print(client.current_price("BTCUSDT"))
+    client.aggtrade("BTCUSDT",1617235200000,1617235206000)
     #print(client.aggtrade(crypto="BTCUSDT",limit=1000, fromtime=1688473945344))
