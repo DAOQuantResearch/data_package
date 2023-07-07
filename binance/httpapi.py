@@ -187,9 +187,20 @@ class httpapi:
         url = "https://api.binance.com/api/v3/"+stream
  
         response = requests.get(url, params=params)
-        data = response.json()
-        time.sleep(0.1)
-        return data
+        if response.status_code == 200:
+            data = response.json()
+            
+            return data
+        elif response.status_code==429:
+            retry_after = int(response.headers.get("Retry-After", "5"))
+            print("Rate Limit Exceeded. Waiting for rate limit reset...")
+            time.sleep(retry_after)
+            return self.get_kline_data_v1(self,params,stream)
+        else:
+            response.raise_for_status()
+
+        
+       
 
     def get_price_data_v1(self,params,stream):
         kline_data = []
@@ -218,9 +229,19 @@ class httpapi:
                     params['endTime']=end_time
                     tasks.append(executor.submit(self.get_kline_data_v1, params,stream))
                     start_timestamp = end_time
+                    time.sleep(0.05) 
 
                 for task in concurrent.futures.as_completed(tasks):
-                    kline_data.extend(task.result())
+                    try:
+                        data=task.result()
+                        if data:
+                            kline_data.extend(data)
+                    except requests.exceptions.HTTPError as e:
+                        # Handle other HTTP errors
+                        print("HTTP Error:", e)
+                    except Exception as e:
+                        # Handle other exceptions
+                        print("Error:", e)
 
             return kline_data
         
@@ -228,7 +249,7 @@ class httpapi:
             params['limit']=1
             first_trade=requests.get("https://api.binance.com/api/v3/aggTrades",params)
             first_trade=first_trade.json()
-            print(first_trade)
+            #print(first_trade)
 
             params['startTime']=params['endTime']
             params['endTime']=None
@@ -240,7 +261,7 @@ class httpapi:
             with concurrent.futures.ThreadPoolExecutor(max_workers=1000) as executor:
 
                 while ((from_id<end_trade_id)):
-                    print("yes")
+                    #print("yes")
                     params1={
                             "symbol": params["symbol"],
                             "limit": 1000,
@@ -249,7 +270,17 @@ class httpapi:
                     tasks.append(executor.submit(self.get_kline_data_v1, params1,stream))
                     from_id+=1000
                 for task in concurrent.futures.as_completed(tasks):
-                        kline_data.extend(task.result())
+                    try:
+                        data=task.result()
+                        if data:
+                            kline_data.extend(data)
+                    except requests.exceptions.HTTPError as e:
+                        # Handle other HTTP errors
+                        print("HTTP Error:", e)
+                    except Exception as e:
+                        # Handle other exceptions
+                        print("Error:", e)
+
             return kline_data
 
                 
@@ -289,6 +320,6 @@ class httpapi:
 ## main 
 if __name__ == "__main__":
     client=httpapi()
-    client.aggtrade_V2("BTCUSDT",1688601600000,1688649391000) # v2 is use the async method
-
-    client.aggTrade_V1("BTCUSDT",1688601600000,1688649391000) # v1 is use the threading method -> faster than v2
+    #client.aggTrade_V1("BTCUSDT",1672531200000,1688626230000) # v1 is use the threading method -> faster than v2
+    client.kline_V1("BTCUSDT",1672531200000,1688626230000,"1d")
+    #client.aggTrade_V2("BTCUSDT",1688601600000,1688649391000) # v2 is use the threading method 
