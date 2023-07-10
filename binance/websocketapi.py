@@ -45,6 +45,6 @@ class websocketapi :
     
 
 
-if __name__ == "__main__":
-    client= websocketapi()
-    client.real_time(["btcusdt@trade","btcusdt@depth"])
+# if __name__ == "__main__":
+#     client= websocketapi()
+#     client.real_time(["btcusdt@trade","btcusdt@depth"])

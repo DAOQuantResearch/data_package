@@ -318,8 +318,8 @@ class httpapi:
 
 
 ## main 
-if __name__ == "__main__":
-    client=httpapi()
-    #client.aggTrade_V1("BTCUSDT",1672531200000,1688626230000) # v1 is use the threading method -> faster than v2
-    client.kline_V1("BTCUSDT",1672531200000,1688626230000,"1d")
-    #client.aggTrade_V2("BTCUSDT",1688601600000,1688649391000) # v2 is use the threading method 
+# if __name__ == "__main__":
+#     client=httpapi()
+#     #client.aggTrade_V1("BTCUSDT",1672531200000,1688626230000) # v1 is use the threading method -> faster than v2
+#     client.kline_V1("BTCUSDT",1672531200000,1688626230000,"1d")
+#     #client.aggTrade_V2("BTCUSDT",1688601600000,1688649391000) # v2 is use the threading method 
