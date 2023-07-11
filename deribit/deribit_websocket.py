@@ -4,7 +4,7 @@ import websockets
 import json
 import threading
 import time
-from all_websocket import all_websocket
+from .all_websocket import all_websocket
 
 
 class websocketapi():
@@ -52,14 +52,16 @@ class websocketapi():
                 "method" : "public/"+msg,
                 "params" : params
         }
-        print(subscribe_message)
+        #print(subscribe_message)
         self.on_open(ws, subscribe_message)
-        print(ws.recv())
+        data=ws.recv()
+        return data
 
 
 
     def call_api(self,msg,params):
-        return self.test(msg,params)
+        data=json.loads(self.test(msg,params))
+        return data
     
     """
     def real_time(self,msg,params):
@@ -82,7 +84,8 @@ class websocketapi():
 
     """
     def real_time(self,msg,params):
-        self.websocket_client.real_time(msg,params)
+        data=self.websocket_client.real_time(msg,params)
+        return data
         
     
 

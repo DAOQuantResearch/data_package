@@ -1,8 +1,8 @@
 
-import httpapi
-import websocketapi
-from util.util import convert_to_timestamp
-from util.util import convert_dataframe
+from .httpapi import httpapi
+from .websocketapi import websocketapi
+from util import util
+from util import util
 
 class BinanceAPI():
     
@@ -10,26 +10,29 @@ class BinanceAPI():
         self.httpClient=httpapi()
         self.websocketClient=websocketapi()
     
-    def get_historical_price(self,symbol:str,start_time:str,end_time:str,interval:str):
+    def get_historical_price(self,crypto:str,start_time:str,end_time:str,interval:str):
         """
-        symbol: the crypto currency
+        crypto: the crypto currency
         interval: the time interval
         start_time: the start time
         end_time: the end time
         """
-        start_timestamp=convert_to_timestamp(start_time)
-        end_timestamp=convert_to_timestamp(end_time)
-        return convert_dataframe(self.httpClient.kline_V1(symbol,start_timestamp,end_timestamp,interval))
+        start_timestamp=util.convert_to_timestamp(start_time)
+        end_timestamp=util.convert_to_timestamp(end_time)
+        #print(end_timestamp)
+        #df=util.convert_dataframe(self.httpClient.kline_V1(crypto,start_timestamp,end_timestamp,interval))
+        
+        return util.convert_dataframe(self.httpClient.kline_V1(crypto,start_timestamp,end_timestamp,interval))
     
-    def get_historical_trade(self,symbol:str,start_time:str,end_time:str):
+    def get_historical_aggtrade(self,crypto:str,start_time:str,end_time:str):
         """
-        symbol: the crypto currency
+        crypto: the crypto currency
         start_time: the start time
         end_time: the end time
         """
-        start_timestamp=convert_to_timestamp(start_time)
-        end_timestamp=convert_to_timestamp(end_time)
-        return convert_dataframe(self.httpClient.aggTrade_V1(symbol,start_timestamp,end_timestamp))
+        start_timestamp=util.convert_to_timestamp(start_time)
+        end_timestamp=util.convert_to_timestamp(end_time)
+        return util.convert_dataframe(self.httpClient.aggTrade_V1(crypto,start_timestamp,end_timestamp))
     
     def realtime_price(self,channel:str):
         """

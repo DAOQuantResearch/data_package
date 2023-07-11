@@ -6,7 +6,7 @@ import concurrent.futures
 import aiohttp
 import asyncio
 
-class httpapi:
+class httpapi():
 
     def __init__(self, api_key=None, api_key_secret=None):
         self.api_key = api_key
@@ -44,8 +44,8 @@ class httpapi:
                 if len(data) == 0:
                     break  # No more data available
                 all_data.extend(data)
-                print(len(data))
-                print(data)
+                #print(len(data))
+                #print(data)
 
                
                 if type=="klines":
@@ -144,7 +144,7 @@ class httpapi:
     async def data_pre(self,params,stream):
          
         data = await self.get_price_data(params,stream)
-        print(data)
+        #print(data)
         # Process the kline_data as per your requirements
         #print("finish")
     
@@ -242,7 +242,7 @@ class httpapi:
                     except Exception as e:
                         # Handle other exceptions
                         print("Error:", e)
-
+            #print(kline_data)
             return kline_data
         
         elif stream=="aggTrades":
@@ -294,9 +294,10 @@ class httpapi:
         }
 
         kline_data = self.get_price_data_v1(params,"klines")
-        print(kline_data)
+        #print(kline_data)
         # Process the kline_data as per your requirements
         print("finish")
+        return kline_data
 
     def aggTrade_V1 (self,crypto,start,end):
         params={
@@ -305,8 +306,9 @@ class httpapi:
             "endTime": end,
         }
         aggtrade_data=self.get_price_data_v1(params,"aggTrades")
-        print(aggtrade_data)
+        #print(aggtrade_data)
         print("finish")
+        return aggtrade_data
 
 
 
