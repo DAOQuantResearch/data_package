@@ -1,8 +1,8 @@
 
-from .httpapi import httpapi
-from .websocketapi import websocketapi
-from util import util
-from util import util
+from DQR_Data.binance.httpapi import httpapi
+from DQR_Data.binance.websocketapi import websocketapi
+from DQR_Data.util import util
+from DQR_Data.util import util
 
 class BinanceAPI():
     

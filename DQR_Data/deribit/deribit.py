@@ -1,5 +1,5 @@
-from .deribit_websocket import websocketapi
-from util import util
+from DQR_Data.deribit.deribit_websocket import websocketapi
+from DQR_Data.util import util
 class deribitAPI():
 
     def __init__(self):

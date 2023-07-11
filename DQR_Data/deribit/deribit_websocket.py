@@ -4,7 +4,7 @@ import websockets
 import json
 import threading
 import time
-from .all_websocket import all_websocket
+from DQR_Data.deribit.all_websocket import all_websocket
 
 
 class websocketapi():

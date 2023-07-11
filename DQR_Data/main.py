@@ -1,10 +1,11 @@
-from binance.binance import BinanceAPI
-from deribit.deribit import deribitAPI
+from .binance.binance import BinanceAPI
+from .deribit.deribit import deribitAPI
 
 class DQR_Data():
     def __init__(self):
         self.binance=BinanceAPI()
         self.deribit=deribitAPI()
+        self.count=10
         
 
 

@@ -1,0 +1,9 @@
+setup.py
+DQR_Data/__init__.py
+DQR_Data/example.py
+DQR_Data/main.py
+DQR_Data.egg-info/PKG-INFO
+DQR_Data.egg-info/SOURCES.txt
+DQR_Data.egg-info/dependency_links.txt
+DQR_Data.egg-info/requires.txt
+DQR_Data.egg-info/top_level.txt
