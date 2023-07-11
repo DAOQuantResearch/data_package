@@ -35,6 +35,7 @@ A python library for cryptocurrency trading for Binance and Deribit
 
 ## Install :space_invader:
 
+
 Make sure that you have already have correct library on your local environment
 
 Check your pip library list on your environment
@@ -51,6 +52,24 @@ pip3 install websocket-client
 pip3 install aiohttp
 pip3 install pandas
 ```
+Download our code:
+
+```
+git clone https://github.com/DAOQuantResearch/data_package.git
+
+cd data_package
+python setup.py install
+python -m pip list  # check whether DQR_Data is in the list, if you see in the list, then it install successfully !
+
+```
+
+if you want to delete the library :
+```
+python -m pip uninstall DQR_Data
+```
+
+
+
 
 
 
