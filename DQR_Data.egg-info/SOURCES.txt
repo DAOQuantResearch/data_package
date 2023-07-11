@@ -1,3 +1,4 @@
+setup.cfg
 setup.py
 DQR_Data/__init__.py
 DQR_Data/example.py
