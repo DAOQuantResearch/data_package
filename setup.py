@@ -1,13 +1,10 @@
 
 from setuptools import setup
-with open("Readme.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()  
+
 setup(
     name='DQR_Data',
-    version='0.1.1',
+    version='0.1.3',
     description='A python library for cryptocurrency trading for Binance and Deribit',
-    long_description=long_description,    
-    long_description_content_type="text/markdown",
     author='DAOQuantResearch',
     author_email='DQR-contact@proton.me',
     packages=['DQR_Data'],
