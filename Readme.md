@@ -51,25 +51,8 @@ pip3 install requests
 pip3 install websocket-client
 pip3 install aiohttp
 pip3 install pandas
+pip install DQR-Data==0.1.3
 ```
-Download our code:
-
-```
-git clone https://github.com/DAOQuantResearch/data_package.git
-
-cd data_package
-python setup.py install
-python -m pip list  # check whether DQR_Data is in the list, if you see in the list, then it install successfully !
-
-```
-
-if you want to delete the library :
-```
-python -m pip uninstall DQR_Data
-```
-
-
-
 
 
 
