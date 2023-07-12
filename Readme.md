@@ -59,6 +59,8 @@ pip install DQR-Data==0.1.3
 ## Example  :see_no_evil:
 
 ```python
+
+from DQR_Data import DQR_Data
 DQR_Data_client=DQR_Data()
 print(DQR_Data_client.binance.get_historical_aggtrade("BTCUSDT","01/02/2021 00:00:00","01/02/2021 00:05:00"))
 
