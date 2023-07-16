@@ -2,7 +2,8 @@
 
 A python library for cryptocurrency trading for Binance and Deribit
 
-> View in the [Pypi website](https://pypi.org/project/DQR-Data/)
+View in the [Pypi website](https://pypi.org/project/DQR-Data/)
+
 > we currently work on uniswap and other decentralized exchange platform :blush:
 
 
