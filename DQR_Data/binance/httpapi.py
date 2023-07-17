@@ -212,19 +212,23 @@ class httpapi():
             with concurrent.futures.ThreadPoolExecutor(max_workers=1000) as executor:
                 while start_timestamp < end_timestamp:
                     if params['interval']=='1s':
-                        end_time = start_timestamp + (1000 * 1 * 1000)  
+                        interval_multiplier =( 1 )  
                     elif params['interval']=='1m':
-                        end_time = start_timestamp + (1000 * 60 * 1000)
+                        interval_multiplier = (60)
                     elif params['interval']=='1h':
-                        end_time = start_timestamp + (1000 * 60 * 60 * 1000)
+                        interval_multiplier = ( 60 * 60)
                     elif params['interval']=='1d':
-                        end_time = start_timestamp + (1000 * 60 * 60 * 24 * 1000)
+                        interval_multiplier =  (60 * 60 * 24 )
                     elif params['interval']=='1w':
-                        end_time = start_timestamp + (1000 * 60 * 60 * 24 * 7 * 1000)
+                        interval_multiplier =  (60 * 60 * 24 * 7 )
                     elif params['interval']=='1M':
-                        end_time = start_timestamp + (1000 * 60 * 60 * 24 * 30 * 1000)
+                        interval_multiplier = ( 60 * 60 * 24 * 30 )
                     else :
                         break
+                    end_time = start_timestamp + (1000 * interval_multiplier * 1000)
+
+                    if end_time > end_timestamp:
+                        end_time = end_timestamp
                     params['startTime']=start_timestamp
                     params['endTime']=end_time
                     tasks.append(executor.submit(self.get_kline_data_v1, params,stream))
@@ -320,8 +324,10 @@ class httpapi():
 
 
 ## main 
-# if __name__ == "__main__":
-#     client=httpapi()
-#     #client.aggTrade_V1("BTCUSDT",1672531200000,1688626230000) # v1 is use the threading method -> faster than v2
-#     client.kline_V1("BTCUSDT",1672531200000,1688626230000,"1d")
+if __name__ == "__main__":
+      client=httpapi()
+      print(client.aggTrade_V1("BTCUSDT",1672531200000,1672617600000)) # v1 is use the threading method -> faster than v2
+    #  data=client.kline_V1("BTCUSDT",1672531200000,1672617600000,"1s")
+    #  print(data[-1])
+    #  print(len(data))
 #     #client.aggTrade_V2("BTCUSDT",1688601600000,1688649391000) # v2 is use the threading method 

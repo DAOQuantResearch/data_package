@@ -44,11 +44,17 @@ class deribitAPI():
         data=self.websocketClient.call_api("get_instrument",params)
         return data
     
-    def get_book_summary_by_currency(self,crypto,kind):
-        params={
-            "currency" : crypto,
-            "kind" : kind
-        }
+    def get_book_summary_by_currency(self,crypto,kind=None):
+        if kind is None:
+            params={
+                "currency" : crypto
+            }   
+
+        else:
+            params={
+                "currency" : crypto,
+                "kind" : kind
+            }
         data=self.websocketClient.call_api("get_book_summary_by_currency",params)
         return data
         
