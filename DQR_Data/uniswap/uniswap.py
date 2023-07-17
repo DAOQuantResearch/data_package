@@ -1,6 +1,4 @@
 import requests
-from pprint import pprint
-from eth_utils import to_bytes
 
 import json
 class uniswapAPI():
